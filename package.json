@@ -1,0 +1,21 @@
+{
+  "dependencies": {
+    "pixi.js": "^8.19.0"
+  },
+  "name": "climber_pixi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "ite": "^0.0.1",
+    "vite": "^8.0.16"
+  }
+}
