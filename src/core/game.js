@@ -6,7 +6,7 @@ export class Game {
         this.app = app;
         this.state = 'menu';
 
-        history.stage = new Container();
+        this.stage = new Container();
         this.app.stage.addChild(this.stage);
 
         this.layers = {
@@ -16,12 +16,11 @@ export class Game {
             ui: new Container()
         };
         
-        for (const layer of Object.values(history.layer)){
+        for (const layer of Object.values(this.layers)){
             this.stage.addChild(layer);
         }
 
         this.systems = {};
-
         this.dt = 0;
     }
 
@@ -31,30 +30,31 @@ export class Game {
             this.update();
         });
 
+        this.setState('playing');
     }
 
-    setState(newsState) {
-        this.state = newsState;
+    setState(newState) {
+        this.state = newState;
 
-        for(const layer of Object.values(history.layers)) {
+        for(const layer of Object.values(this.layers)) {
             layer.removeChildren();
         }
 
         switch (newState) {
             case 'menu':
-                //this.startMenu();
+                this.startMenu();
                 break;
             case 'playing':
-                //this.startGame();
+                this.startGame();
                 break;
             case 'gameover':
-                //this.endGame();
+                this.endGame();
                 break;
         }
     }
 
     startMenu(){
-        console.log("same manu");
+        console.log("same menu");
 
         this.setState('playing'); //пока сразу запускаем игру
     }
