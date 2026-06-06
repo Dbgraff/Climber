@@ -1,4 +1,5 @@
 import { Container } from "pixi.js";
+import { Input } from "./input";
 
 export class Game {
     constructor(app){
