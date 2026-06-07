@@ -1,6 +1,6 @@
 export const GAME_WIDTH = 400;
 export const GAME_HEIGHT = 700;
-export const BG_COLOR = 0x16213e;
+export const BG_COLOR = "#16213e";
 
 export const PLAYER = {
     WIDTH: 30,
@@ -17,7 +17,7 @@ export const OBSTACLE = {
     MAX_WIDTH: 70,
     MIN_HEIGHT: 25,
     MAX_HEIGHT: 45,
-    COLOR: 0x533483
+    COLOR: "#352253"
 };
 
 export const SCROLL = {
