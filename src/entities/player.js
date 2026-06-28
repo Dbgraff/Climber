@@ -24,5 +24,26 @@ export class PLayer {
         g.rect(-this.width / 2, -this.height / 2, this.width, this.height);
         g.fill({color: "#e94560"})
     }
+
+    update(dt, isPressed, physics){
+        physics.applyGravity(this, dt);
+
+        if (isPressed) {
+            this.vy = Math.min(this.vy, PLAYER.CLIMB_FORCE);
+            this.vy += PLAYER.CLIMB_FORCE * 0.5 * dt;
+        }
+
+        physics.clampSpeed(this, PLAYER.MAX_SPEED);
+        this.container.y += this.vy * dt;
+    }
+
+    getBounds() {
+        return {
+            x: this.container.x - this.width / 2,
+            y: this.container.y - this.height / 2,
+            width: this.width,
+            height: this.height
+        };
+    }
 }
 
