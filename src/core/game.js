@@ -1,5 +1,9 @@
 import { Container } from "pixi.js";
 import { Input } from "./input";
+import { Player } from "../entities/player";
+import { Physics } from "../system/physics";
+import { Spawner } from "../system/spawner";
+import { SCROLL } from "../utils/constans";
 
 export class Game {
     constructor(app){
@@ -20,7 +24,14 @@ export class Game {
             this.stage.addChild(layer);
         }
 
-        this.systems = {};
+        this.input = new Input(this.app.canvas);
+        this.physics = new Physics();
+        this.spawner = new Spawner(this);
+
+        this.player = null;
+        this.scrollSpeed = SCROLL.BASE_SPEED;
+        this.score = 0;
+        
         this.dt = 0;
     }
 
@@ -36,20 +47,25 @@ export class Game {
     setState(newState) {
         this.state = newState;
 
-        for(const layer of Object.values(this.layers)) {
-            layer.removeChildren();
+        if (newState === 'playing') {
+            this.startGame();
+        } else if (newState === 'gameover') {
+            this.endGame();
+        }
+    }
+
+    checkCollision() {
+        const playerBounds = this.player.getBounds();
+
+        for(const obs of this.spawner.getObstacles()){
+            if (this.physics.checkAABB(playerBounds, obs.getBounds())){
+                this.setState('gameover');
+                return;
+            }
         }
 
-        switch (newState) {
-            case 'menu':
-                this.startMenu();
-                break;
-            case 'playing':
-                this.startGame();
-                break;
-            case 'gameover':
-                this.endGame();
-                break;
+        if (playerBounds.y < 0 || playerBounds.y + playerBounds.height > this.app.screen.height) {
+            this.setState('gameover');
         }
     }
 
@@ -61,15 +77,41 @@ export class Game {
 
     startGame() {
         console.log('start game');
+
+        for (const layer of Object.values(this.layers)) {
+            layer.removeChildren();
+        }
+
+        this.scrollSpeed = SCROLL.BASE_SPEED;
+        this.score = 0;
+        this.spawner = new Spawner(this);
+
+        this.player = new Player();
+        this.layers.player.addChild(this.player.container);
+
+        this.input.enable();
     }
 
     endGame() {
         console.log('end game');
+
+        this.input.disable();
+        console.log('Game over | Score: ', Math.floor(this.score));
+
+        setTimeout(() => this.setState('playing'), 2000);
     }
 
     update(){
         if (this.state !== 'playing') return;
 
-        //потом тут обновление всех систем сделать надо
+       const dt = this.dt;
+
+       this.scrollSpeed += SCROLL.ACCELERATION * dt;
+       this.score += this.scrollSpeed * dt / 10;
+
+       this.player.update(dt, this.input.isPressed, this.physics);
+       this.spawner.update(dt, this.scrollSpeed, this.score);
+
+        this.checkCollision();
     }
 }
