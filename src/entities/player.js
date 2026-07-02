@@ -1,7 +1,7 @@
 import { Container, Graphics } from "pixi.js";
 import { PLAYER } from "../utils/constans";
 
-export class PLayer {
+export class Player {
     constructor() {
         this.x = PLAYER.START_X;
         this.y = PLAYER.START_Y;
