@@ -9,12 +9,12 @@ export class Input{
 
     enable() {
         this.canvas.addEventListener('pointerdown', this.onPointerDown);
-        this.canvas.addEventListener('pointerup', this.on)
+        this.canvas.addEventListener('pointerup', this.onPointerUp)
     }
 
     disable() {
         this.canvas.removeEventListener('pointerdown', this.onPointerDown);
-        this.canvas.removeEventListener('pointerup', this.on);
+        this.canvas.removeEventListener('pointerup', this.onPointerUp);
         this.isPressed = false;
     }
 
