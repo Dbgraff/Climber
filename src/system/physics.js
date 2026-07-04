@@ -1,6 +1,8 @@
+import { PLAYER } from "../utils/constans";
+
 export class Physics {
     constructor() {
-        this.gravity = 800;
+        this.gravity = PLAYER.GRAVITY;
     }
 
     applyGravity(entity, dt) {

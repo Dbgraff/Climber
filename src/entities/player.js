@@ -45,5 +45,9 @@ export class Player {
             height: this.height
         };
     }
+
+    destroy() {
+        this.container.destroy({children: true});
+    }
 }
 

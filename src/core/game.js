@@ -78,6 +78,9 @@ export class Game {
     startGame() {
         console.log('start game');
 
+        if (this.spawner) this.spawner.destroy();
+        if (this.player) this.player.destroy();
+
         for (const layer of Object.values(this.layers)) {
             layer.removeChildren();
         }
