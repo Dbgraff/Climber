@@ -4,7 +4,7 @@ import { OBSTACLE } from "../utils/constans";
 export class Obstacle {
     constructor(x) {
         this.width = OBSTACLE.MIN_WIDTH + Math.random() * (OBSTACLE.MAX_WIDTH - OBSTACLE.MIN_WIDTH);
-        this.height = OBSTACLE.MIN_HEIGHT + Math.random() + (OBSTACLE.MAX_HEIGHT - OBSTACLE.MIN_HEIGHT);
+        this.height = OBSTACLE.MIN_HEIGHT + Math.random() * (OBSTACLE.MAX_HEIGHT - OBSTACLE.MIN_HEIGHT);
 
         this.grafics = new Graphics();
         this.draw();
