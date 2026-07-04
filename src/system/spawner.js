@@ -11,6 +11,17 @@ export class Spawner {
     }
 
     update(dt, scrollSpeed, score) {
+        for (let i = this.obstacles.length - 1; i >= 0; i--){
+            const obs = this.obstacles[i];
+            obs.update(dt, scrollSpeed);
+
+            if (obs.isOffScreen(this.game.app.screen.height)) {
+                this.game.layers.obstacles.removeChild(obs.grafics);
+                obs.destroy();
+                this.obstacles.splice(i, 1);
+            }
+        }
+
         this.timer += dt;
 
         const interval = Math.max(
