@@ -1,17 +1,4 @@
-import { PLAYER } from "../utils/constans";
-
 export class Physics {
-    constructor() {
-        this.gravity = PLAYER.GRAVITY;
-    }
-
-    applyGravity(entity, dt) {
-        entity.vy += this.gravity * dt;
-    }
-
-    clampSpeed(entity, maxSpeed) {
-        entity.vy = Math.max(-maxSpeed, Math.min(maxSpeed, entity.vy));
-    }
 
     checkAABB(a, b) { // axis-aligned bounding box
         return (

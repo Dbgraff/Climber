@@ -1,21 +1,18 @@
 import { Container, Graphics } from "pixi.js";
-import { PLAYER } from "../utils/constans";
+import { GAME_HEIGHT, GAME_WIDTH, PLAYER } from "../utils/constans";
 
 export class Player {
     constructor() {
-        this.x = PLAYER.START_X;
-        this.y = PLAYER.START_Y;
         this.width = PLAYER.WIDTH;
         this.height = PLAYER.HEIGHT;
-        this.vy = 0;
 
         this.container = new Container();
         this.graphics = new Graphics();
         this.draw();
         this.container.addChild(this.graphics);
 
-        this.container.x = this.x;
-        this.container.y = this.y;
+        this.container.x = PLAYER.START_X;
+        this.container.y = PLAYER.START_Y;
     }
 
     draw() {
@@ -25,16 +22,16 @@ export class Player {
         g.fill({color: "#e94560"})
     }
 
-    update(dt, isPressed, physics){
-        physics.applyGravity(this, dt);
+    update(dt, target){
+        const t = 1 - Math.exp(-PLAYER.FOLLOW_SPEED * dt);
 
-        if (isPressed) {
-            this.vy = Math.min(this.vy, PLAYER.CLIMB_FORCE);
-            this.vy += PLAYER.CLIMB_FORCE * 0.5 * dt;
-        }
+        this.container.x += (target.x - this.container.x) * t;
+        this.container.y += (target.y - this.container.y) * t;
 
-        physics.clampSpeed(this, PLAYER.MAX_SPEED);
-        this.container.y += this.vy * dt;
+        const halfW = this.width / 2;
+        const halfH = this.height / 2;
+        this.container.x = Math.max(halfW, Math.min(GAME_WIDTH - halfW, this.container.x));
+        this.container.y = Math.max(halfH, Math.min(GAME_HEIGHT - halfH, this.container.y));
     }
 
     getBounds() {

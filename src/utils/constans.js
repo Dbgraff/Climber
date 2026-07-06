@@ -7,9 +7,7 @@ export const PLAYER = {
     HEIGHT: 40,
     START_X: 200,
     START_Y: 350,
-    GRAVITY: 800,
-    CLIMB_FORCE: -350,
-    MAX_SPEED: 500
+    FOLLOW_SPEED: 12
 };
 
 export const OBSTACLE = {

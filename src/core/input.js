@@ -1,29 +1,35 @@
+import { GAME_WIDTH, GAME_HEIGHT } from "../utils/constans";
+
 export class Input{
-    constructor(canvas){
-        this.isPressed = false;
+    constructor(canvas) {
         this.canvas = canvas;
 
-        this.onPointerDown = this.onPointerDown.bind(this);
-        this.onPointerUp = this.onPointerUp.bind(this);
+        this.pointerX = GAME_WIDTH / 2;
+        this.pointerY = GAME_HEIGHT / 2;
+
+        this.onPointerMove = this.onPointerMove.bind(this);
     }
 
     enable() {
-        this.canvas.addEventListener('pointerdown', this.onPointerDown);
-        this.canvas.addEventListener('pointerup', this.onPointerUp)
+        window.addEventListener('pointermove', this.onPointerMove);
+        this.canvas.style.touchAction = 'none';
     }
 
     disable() {
-        this.canvas.removeEventListener('pointerdown', this.onPointerDown);
-        this.canvas.removeEventListener('pointerup', this.onPointerUp);
-        this.isPressed = false;
+        window.removeEventListener('pointermove', this.onPointerMove);
     }
 
-    onPointerDown() {
-        this.isPressed = true;
-    }
+    onPointerMove(e) {
+        const rect = this.canvas.getBoundingClientRect();
 
-    onPointerUp() {
-        this.isPressed = false;
+        const scaleX = GAME_WIDTH / rect.width;
+        const scaleY = GAME_HEIGHT / rect.height;
+
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
+
+        this.pointerX = Math.max(0, Math.min(GAME_WIDTH, x));
+        this.pointerY = Math.max(0, Math.min(GAME_HEIGHT, y));
     }
 
     destroy() {

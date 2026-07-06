@@ -63,10 +63,6 @@ export class Game {
                 return;
             }
         }
-
-        if (playerBounds.y < 0 || playerBounds.y + playerBounds.height > this.app.screen.height) {
-            this.setState('gameover');
-        }
     }
 
     startMenu(){
@@ -107,13 +103,13 @@ export class Game {
     update(){
         if (this.state !== 'playing') return;
 
-       const dt = this.dt;
+        const dt = this.dt;
 
-       this.scrollSpeed += SCROLL.ACCELERATION * dt;
-       this.score += this.scrollSpeed * dt / 10;
+        this.scrollSpeed += SCROLL.ACCELERATION * dt;
+        this.score += this.scrollSpeed * dt / 10;
 
-       this.player.update(dt, this.input.isPressed, this.physics);
-       this.spawner.update(dt, this.scrollSpeed, this.score);
+        this.player.update(dt, { x: this.input.pointerX, y: this.input.pointerY });
+        this.spawner.update(dt, this.scrollSpeed, this.score);
 
         this.checkCollision();
     }
