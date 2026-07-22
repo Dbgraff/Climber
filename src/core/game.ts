@@ -54,6 +54,10 @@ export class Game {
         this.scoreText.x = 12;
         this.scoreText.y = 10;
         this.layers.ui.addChild(this.scoreText);
+
+        window.addEventListener('keydown', (event) => {
+            if(event.code === 'Escape') this.togglePause();
+        });
     }
 
     private drawBackground() {
@@ -103,6 +107,13 @@ export class Game {
         const startHold = this.wall.reset(0);
         this.player = new Player(startHold);
         this.layers.player.addChild(this.player.container);
+    }
+
+    private togglePause() {
+        if (this.state === 'playing') this.setState('paused');
+        else 
+            if (this.state === 'paused') this.setState('playing');
+
     }
 
     private endGame() {
