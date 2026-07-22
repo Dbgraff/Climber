@@ -78,10 +78,10 @@ export class Player {
             .stroke({
                 width: 3,
                 color: "#d6a84f"
-            })
+            });
         
         this.leftArm.clear();
-        this.leftArm.moveTo(-6, 14)
+        this.leftArm.moveTo(-6, -14)
                     .lineTo(-15, -4)
                     .stroke({
                         width: 4,
