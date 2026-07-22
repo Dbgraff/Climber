@@ -17,6 +17,8 @@ export class Game {
         ui: Container;
     };
 
+    private pauseOverlay: Container | null = null;
+
     private wall: WallGenerator;
     private player: Player | null = null;
 
@@ -84,12 +86,20 @@ export class Game {
 
         this.setState('playing');
     }
+
     setState(newState: GameState) {
         this.state = newState;
 
         if (newState === 'playing') {
-            this.startGame();
-        } else if (newState === 'gameover') {
+            this.hidePauseMenu();
+
+            if(!this.player){
+                this.startGame();
+            }
+
+        } else if (newState === 'paused') {
+            this.showPauseMenu();
+        } else if (newState === 'gameover'){
             this.endGame();
         }
     }
@@ -113,7 +123,72 @@ export class Game {
         if (this.state === 'playing') this.setState('paused');
         else 
             if (this.state === 'paused') this.setState('playing');
+    }
 
+    private showPauseMenu() {
+        if(this.pauseOverlay) return;
+
+        const overlay = new Container();
+        const background = new Graphics();
+
+        background.rect(0, 0, GAME_WIDTH, GAME_HEIGHT)
+            .fill({
+                color: "#000000",
+                alpha: 0.65
+            });
+        
+        const title = new Text({
+            text: 'ПАУЗА',
+            style: {
+                fill: '#f2ead8',
+                fontSize: 42,
+                fontFamily: 'sans-seril',
+                fontWeight: 'bold'            
+            }
+        });
+
+        title.anchor.set(0.5);
+        title.x = GAME_WIDTH / 2;
+        title.y = GAME_HEIGHT / 2 - 60;
+
+        const continueButton = new Text({
+            text: 'ПРОДОЛЖИТЬ',
+            style: {
+                fill: '#f2ead8',
+                fontSize: 22,
+                fontFamily: 'sans-seril'
+            }
+        });
+        continueButton.anchor.set(0.5);
+        continueButton.x = GAME_WIDTH / 2;
+        continueButton.y = GAME_HEIGHT /2 + 20;
+        
+        continueButton.eventMode = 'static';
+        continueButton.cursor = 'pointer';
+        
+        continueButton.on('pointerdown', () => {
+            this.setState('playing');
+        });
+
+        overlay.addChild(
+            background,
+            title,
+            continueButton
+        );
+
+        this.layers.ui.addChild(overlay);
+        this.pauseOverlay = overlay;
+    }
+
+    private hidePauseMenu(){
+        if (!this.pauseOverlay) return;
+
+        this.layers.ui.removeChild(this.pauseOverlay);
+        this.pauseOverlay.destroy({
+            children: true
+        });
+
+        this.pauseOverlay = null;
     }
 
     private endGame() {
