@@ -10,18 +10,29 @@ export class WallGenerator {
     private game: Game;
     private holds: Hold[] = [];
     private highestWorldY = 0; 
+
+    private lastHold: Hold | null = null;
  
     constructor(game: Game) {
         this.game = game;
     }
  
     reset(startWorldY: number): Hold {
+        
         for (const hold of this.holds) hold.destroy();
+
         this.holds = [];
         this.highestWorldY = startWorldY;
- 
-        const startHold = new Hold(GAME_WIDTH / 2, startWorldY, true);
+        this.lastHold = null;
+
+        const startHold = new Hold(
+            GAME_WIDTH / 2, 
+            startWorldY, 
+            true
+        );
+
         this.addHold(startHold);
+        this.lastHold = startHold;
  
         for (let i = 0; i < WALL.ROWS_AHEAD; i++) {
             this.generateNextRow();
@@ -33,30 +44,63 @@ export class WallGenerator {
     private addHold(hold: Hold) {
         this.holds.push(hold);
         this.game.layers.wall.addChild(hold.graphics);
-        hold.graphics.on('pointerdown', () => this.game.onHoldClicked(hold));
+        hold.graphics.on(
+            'pointerdown', 
+            () => this.game.onHoldClicked(hold)
+        );
     }
  
     private generateNextRow() {
-        this.highestWorldY -= WALL.ROW_HEIGHT;
- 
-        const count = WALL.HOLDS_PER_ROW_MIN +
-            Math.floor(Math.random() * (WALL.HOLDS_PER_ROW_MAX - WALL.HOLDS_PER_ROW_MIN + 1));
- 
-        // "опорная" X-координата ряда — вокруг неё группируем зацепы,
-        // чтобы снизу всегда было чем дотянуться до нового ряда
-        const anchorX = WALL.MARGIN_X + Math.random() * (GAME_WIDTH - WALL.MARGIN_X * 2);
- 
-        for (let i = 0; i < count; i++) {
-            const x = clamp(
-                anchorX + (Math.random() - 0.5) * WALL.REACH_X,
+        if(!this.lastHold) return;
+
+        const previous = this.lastHold;
+        const minVerticalDistance = 55;
+        const maxVerticalDistance = 105;
+
+        const verticalDistance = minVerticalDistance + Math.random() * (maxVerticalDistance - minVerticalDistance);
+
+        const newY = previous.worldY - verticalDistance;
+        
+        const maxHorizontalDistance = WALL.REACH_X * 0.9;
+        const minX = Math.max(WALL.MARGIN_X, previous.worldX - maxHorizontalDistance);
+        const maxX = Math.min(GAME_WIDTH - WALL.MARGIN_X, previous.worldX + maxHorizontalDistance);
+
+        const newX = minX + Math.random() * (maxX - minX);
+
+        const newHold = new Hold(
+            clamp(
+                newX,
                 WALL.MARGIN_X,
                 GAME_WIDTH - WALL.MARGIN_X
-            );
-            this.addHold(new Hold(x, this.highestWorldY));
+            ),
+            newY
+        );
+
+        this.addHold(newHold);
+
+        this.lastHold = newHold;
+        this.highestWorldY = Math.min(this.highestWorldY, newY);
+
+        if(Math.random() < 0.45) {
+            this.generateOptionalHold(newHold);
         }
     }
+
+    private generateOptionalHold(baseHold: Hold) {
+        const sideDistance = 45 + Math.random() * 70;
+        const direction = Math.random() < 0.5 ? -1 : 1;
+
+        const x = clamp(
+            baseHold.worldX + sideDistance * direction,
+            WALL.MARGIN_X,
+            GAME_WIDTH - WALL.MARGIN_X
+        );
+
+        const y = baseHold.worldY + (Math.random() - 0.5) * 35;
+
+        this.addHold(new Hold(x,y));
+    }
  
-    /** @returns true, если зацеп под игроком в этом кадре обвалился */
     update(dt: number, playerWorldY: number, playerCurrentHoldId: number): boolean {
         while (this.highestWorldY > playerWorldY - WALL.ROWS_AHEAD * WALL.ROW_HEIGHT) {
             this.generateNextRow();
@@ -88,5 +132,6 @@ export class WallGenerator {
     destroy() {
         for (const hold of this.holds) hold.destroy();
         this.holds = [];
+        this.lastHold = null;
     }
 }
