@@ -74,11 +74,12 @@ export class Player {
         this.head.circle(0, -26, 7)
             .fill({color: "#d49a76"});
         
-        this.head.arc(0, -26, 8, Math.PI, Math.PI * 2)
-            .stroke({
-                width: 3,
-                color: "#d6a84f"
-            });
+        // this.head.moveTo(-8, -26)
+        //     .arc(0, -26, 7,  Math.PI, Math.PI * 2)
+        //     .stroke({
+        //         width: 3.5,
+        //         color: "#ff7700"
+        //     });
         
         this.leftArm.clear();
         this.leftArm.moveTo(-6, -14)
