@@ -16,13 +16,11 @@ export const CAMERA = {
 };
 
 export const WALL = {
-    ROW_HEIGHT: 90,
-    HOLDS_PER_ROW_MIN: 1,
-    HOLDS_PER_ROW_MAX: 3,
-    MARGIN_X: 30,
-    REACH_X: 130,
-    ROWS_AHEAD: 6,
-    CULL_BELOW: 260
+    ROW_HEIGHT: 80,
+    MARGIN_X: 45,
+    REACH_X: 145,
+    ROWS_AHEAD: 8,
+    CULL_BELOW: 250
 };
 
 export const HOLD = {
