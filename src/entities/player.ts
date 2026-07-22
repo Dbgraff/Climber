@@ -24,30 +24,97 @@ export class Player {
     private moveT = 0;
 
     readonly container: Container;
-    private readonly graphics: Graphics;
-
+    
+    private readonly character: Container;
+    private readonly body: Graphics;
+    private readonly head: Graphics;
+    private readonly leftArm: Graphics;
+    private readonly rightArm: Graphics;
+    private readonly leftLeg: Graphics;
+    private readonly rightLeg: Graphics;
+    
     constructor(startHold: Hold) {
         this.worldX = startHold.worldX;
         this.worldY = startHold.worldY;
         this.currentHoldId = startHold.id;
 
         this.container = new Container();
-        this.graphics = new Graphics();
+        
+        this.character = new Container();
+        this.body = new Graphics();
+        this.head = new Graphics();
+        this.leftArm = new Graphics();
+        this.rightArm = new Graphics();
+        this.leftLeg = new Graphics();
+        this.rightLeg = new Graphics();
+
         this.draw();
-        this.container.addChild(this.graphics);
+
+        this.character.addChild(
+            this.leftLeg,
+            this.rightLeg,
+            this.body,
+            this.leftArm,
+            this.rightArm,
+            this.head
+        );
+
+        this.container.addChild(this.character);
 
         this.container.x = this.worldX;
         this.container.y = this.worldY;
     }
 
     private draw() {
-        const g = this.graphics;
-        g.clear();
+        this.body.clear();
+        this.body.roundRect(-7, -18, 14, 20, 5)
+            .fill({color: "#8f2939"});
+        
+        this.head.clear();
+        this.head.circle(0, -26, 7)
+            .fill({color: "#d49a76"});
+        
+        this.head.arc(0, -26, 8, Math.PI, Math.PI * 2)
+            .stroke({
+                width: 3,
+                color: "#d6a84f"
+            })
+        
+        this.leftArm.clear();
+        this.leftArm.moveTo(-6, 14)
+                    .lineTo(-15, -4)
+                    .stroke({
+                        width: 4,
+                        color: "#d49a76",
+                        cap: 'round'
+                    });
 
-        g.circle(0, -this.height / 2 + 6, 6);
-        g.fill({ color: PLAYER.COLOR });
+        this.rightArm.clear();
+        this.rightArm.moveTo(6, -14)
+                    .lineTo(15, -4)
+                    .stroke({
+                        width: 4,
+                        color: "#d49a76",
+                        cap: 'round'
+                    });
 
-        g.roundRect(-this.width / 2, -this.height / 2 + 10, this.width, this.height - 10, 4);
+        this.leftLeg.clear();
+        this.leftLeg.moveTo(-4, 2)
+                    .lineTo(-10, 13)
+                    .stroke({
+                        width: 4,
+                        color: "#343247",
+                        cap: 'round'
+                    });
+
+        this.rightLeg.clear();
+        this.rightLeg.moveTo(4, -2)
+                    .lineTo(10, 13)
+                    .stroke({
+                        width: 4,
+                        color: "#343247",
+                        cap: 'round'
+                    });
     }
 
     get isBusy(): boolean {
@@ -89,6 +156,13 @@ export class Player {
  
         this.container.x = this.worldX;
         this.container.y = this.worldY;
+
+        const swing = Math.sin(this.moveT * Math.PI * 4) * 0.15;
+        this.character.rotation = swing;
+        this.leftArm.rotation = -swing * 2;
+        this.rightArm.rotation = swing * 2;
+        this.leftLeg.rotation = swing;
+        this.rightLeg.rotation = -swing;
     }
 
     getBounds() {
