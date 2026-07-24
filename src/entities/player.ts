@@ -109,7 +109,7 @@ export class Player {
                     });
 
         this.rightLeg.clear();
-        this.rightLeg.moveTo(4, -2)
+        this.rightLeg.moveTo(4, 2)
                     .lineTo(10, 13)
                     .stroke({
                         width: 4,
