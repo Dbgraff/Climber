@@ -193,7 +193,17 @@ export class Game {
 
     private endGame() {
         console.log('Игра окончена | Высота: ', Math.floor(this.score), 'м');
-        setTimeout(() => this.setState('playing'), 1600);
+        
+        if(this.player){
+            this.player.destroy();
+            this.player = null;
+        }
+
+        this.wall.destroy();
+
+        setTimeout(() => {
+            this.setState('playing');
+        }, 1600);
     }
 
     onHoldClicked(hold: Hold) {
@@ -221,7 +231,7 @@ export class Game {
 
         const brokeUnderPlayer = this.wall.update(dt, this.player.worldY, this.player.currentHoldId);
 
-        if (brokeUnderPlayer && !this.player.isBusy) {
+        if (brokeUnderPlayer) {
             this.setState('gameover');
             return;
         }
