@@ -191,6 +191,7 @@ export class Game {
         this.pauseOverlay = null;
     }
 
+    //изменить логику окончания игры, жобавить оверлей проигрыша
     private endGame() {
         console.log('Игра окончена | Высота: ', Math.floor(this.score), 'м');
         
@@ -199,7 +200,7 @@ export class Game {
             this.player = null;
         }
 
-        this.wall.destroy();
+        this.wall.destroy(); // попробовать перместить удаление всей стены в момент показа оверлея
 
         setTimeout(() => {
             this.setState('playing');
@@ -232,6 +233,7 @@ export class Game {
         const brokeUnderPlayer = this.wall.update(dt, this.player.worldY, this.player.currentHoldId);
 
         if (brokeUnderPlayer) {
+            this.wall.removeHold(brokeUnderPlayer);
             this.setState('gameover');
             return;
         }

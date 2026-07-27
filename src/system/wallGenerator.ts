@@ -49,6 +49,17 @@ export class WallGenerator {
             () => this.game.onHoldClicked(hold)
         );
     }
+
+    removeHold(hold: Hold) {
+        const index = this.holds.indexOf(hold);
+        
+        if(index === -1) return;
+
+        this.game.layers.wall.removeChild(hold.graphics);
+        hold.destroy();
+
+        this.holds.splice(index, 1);
+    }
  
     private generateNextRow() {
         if(!this.lastHold) return;
@@ -101,18 +112,21 @@ export class WallGenerator {
         this.addHold(new Hold(x,y));
     }
  
-    update(dt: number, playerWorldY: number, playerCurrentHoldId: number): boolean {
+    update(dt: number, playerWorldY: number, playerCurrentHoldId: number): Hold | null {
         while (this.highestWorldY > playerWorldY - WALL.ROWS_AHEAD * WALL.ROW_HEIGHT) {
             this.generateNextRow();
         }
  
-        let brokeUnderPlayer = false;
+        let brokenHold: Hold | null = null;
  
         for (let i = this.holds.length - 1; i >= 0; i--) {
             const hold = this.holds[i];
  
             if (hold.id === playerCurrentHoldId) {
-                if (hold.update(dt) === 'broke') brokeUnderPlayer = true;
+                if (hold.update(dt) === 'broke') {
+                    brokenHold = hold;
+                    break;
+                }
             }
  
             if (hold.worldY > playerWorldY + WALL.CULL_BELOW) {
@@ -122,7 +136,7 @@ export class WallGenerator {
             }
         }
  
-        return brokeUnderPlayer;
+        return brokenHold;
     }
  
     getHoldById(id: number): Hold | undefined {

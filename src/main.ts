@@ -1,5 +1,5 @@
 import { Application } from 'pixi.js';
-import { Game } from './core/Game';
+import { Game } from './core/game';
 import { GAME_WIDTH, GAME_HEIGHT, BG_COLOR } from './utils/constans';
 
  
