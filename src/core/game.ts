@@ -18,6 +18,9 @@ export class Game {
     };
 
     private pauseOverlay: Container | null = null;
+    private menuOverlay: Container | null = null;
+    private gameOverOverlay: Container | null = null;
+    private pauseButton!: Graphics;
     private bgSprite!: TilingSprite;
 
     private wall: WallGenerator;
@@ -65,6 +68,110 @@ export class Game {
         });
     }
 
+    private createOverlay(titleText: string, buttonText: string, onButtonClick: () => void, extraLines: string[] = []): Container {
+        const overlay = new Container();
+
+        const dim = new Graphics();
+        dim.rect(0, 0, GAME_WIDTH, GAME_HEIGHT).fill({ color: "#000000", alpha: 0.65 });
+        overlay.addChild(dim);
+
+        const title = new Text({
+            text: titleText,
+            style: { fill: '#f2ead8', fontSize: 34, fontFamily: 'sans-serif', fontWeight: 'bold' }
+        });
+        title.anchor.set(0.5);
+        title.x = GAME_WIDTH / 2;
+        title.y = GAME_HEIGHT / 2 - 90;
+        overlay.addChild(title);
+
+        let lineY = GAME_HEIGHT / 2 - 40;
+        for (const line of extraLines) {
+            const lineText = new Text({
+                text: line,
+                style: { fill: '#c9bfd6', fontSize: 15, fontFamily: 'sans-serif', align: 'center' }
+            });
+            lineText.anchor.set(0.5);
+            lineText.x = GAME_WIDTH / 2;
+            lineText.y = lineY;
+            overlay.addChild(lineText);
+            lineY += 24;
+        }
+
+        const button = new Text({
+            text: buttonText,
+            style: { fill: '#f2ead8', fontSize: 22, fontFamily: 'sans-serif', fontWeight: 'bold' }
+        });
+        button.anchor.set(0.5);
+        button.x = GAME_WIDTH / 2;
+        button.y = GAME_HEIGHT / 2 + 70;
+        button.eventMode = 'static';
+        button.cursor = 'pointer';
+        button.on('pointerdown', onButtonClick);
+        overlay.addChild(button);
+
+        return overlay;
+    }
+
+    private showMainMenu() {
+        if (this.menuOverlay) return;
+
+        this.menuOverlay = this.createOverlay(
+            'СКАЛОЛАЗ',
+            'НАЧАТЬ',
+            () => {
+                this.hideMainMenu();
+                this.setState('playing');
+            },
+            [
+                'Кликайте по зацепам, чтобы забраться выше.',
+                'Некоторые из них обваливаются — не задерживайтесь.'
+            ]
+        );
+
+        this.layers.ui.addChild(this.menuOverlay);
+    }
+
+    private hideMainMenu() {
+        if (!this.menuOverlay) return;
+
+        this.layers.ui.removeChild(this.menuOverlay);
+        this.menuOverlay.destroy({ children: true });
+        this.menuOverlay = null;
+    }
+
+    private showGameOverMenu() {
+        if (this.gameOverOverlay) return;
+
+        this.gameOverOverlay = this.createOverlay(
+            'ВЫ СОРВАЛИСЬ',
+            'ЗАНОВО',
+            () => this.restartGame(),
+            [`Высота: ${Math.floor(this.score)} м`]
+        );
+
+        this.layers.ui.addChild(this.gameOverOverlay);
+    }
+
+    private hideGameOverMenu() {
+        if (!this.gameOverOverlay) return;
+
+        this.layers.ui.removeChild(this.gameOverOverlay);
+        this.gameOverOverlay.destroy({ children: true });
+        this.gameOverOverlay = null;
+    }
+
+    private restartGame() {
+        this.hideGameOverMenu();
+
+        if (this.player) {
+            this.player.destroy();
+            this.player = null;
+        }
+        this.wall.destroy();
+
+        this.setState('playing');
+    }
+
     private setupPauseButton(){
         const btn = new Graphics();
         btn.roundRect(0, 0, 36, 36, 8);
@@ -85,6 +192,8 @@ export class Game {
         btn.addChild(icon);
 
         this.layers.ui.addChild(btn);
+
+        this.pauseButton = btn;
     }
 
     private drawBackground() {
@@ -160,11 +269,13 @@ export class Game {
             this.update();
         });
 
-        this.setState('playing');
+        this.showMainMenu();
     }
 
     setState(newState: GameState) {
         this.state = newState;
+
+        this.pauseButton.visible = (newState === 'playing' || newState === 'paused');
 
         if (newState === 'playing') {
             this.hidePauseMenu();
@@ -267,20 +378,9 @@ export class Game {
         this.pauseOverlay = null;
     }
 
-    //изменить логику окончания игры, жобавить оверлей проигрыша
     private endGame() {
         console.log('Игра окончена | Высота: ', Math.floor(this.score), 'м');
-        
-        if(this.player){
-            this.player.destroy();
-            this.player = null;
-        }
-
-        this.wall.destroy(); // попробовать перместить удаление всей стены в момент показа оверлея
-
-        setTimeout(() => {
-            this.setState('playing');
-        }, 1600);
+        this.showGameOverMenu();
     }
 
     onHoldClicked(hold: Hold) {
