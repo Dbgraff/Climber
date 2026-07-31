@@ -1,4 +1,4 @@
-import { Application, Container, Graphics, Text } from "pixi.js";
+import { Application, Container, Graphics, Text, TilingSprite } from "pixi.js";
 import { Player } from "../entities/player";
 import { WallGenerator } from "../system/wallGenerator";
 import { Hold } from "../entities/hold";
@@ -18,6 +18,7 @@ export class Game {
     };
 
     private pauseOverlay: Container | null = null;
+    private bgSprite!: TilingSprite;
 
     private wall: WallGenerator;
     private player: Player | null = null;
@@ -57,25 +58,100 @@ export class Game {
         this.scoreText.y = 10;
         this.layers.ui.addChild(this.scoreText);
 
+        this.setupPauseButton();
+
         window.addEventListener('keydown', (event) => {
             if(event.code === 'Escape') this.togglePause();
         });
     }
 
-    private drawBackground() {
-        const g = new Graphics();
-        g.rect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-        g.fill({ color: BG_COLOR });
+    private setupPauseButton(){
+        const btn = new Graphics();
+        btn.roundRect(0, 0, 36, 36, 8);
+        btn.fill({color: "#000000", alpha: 0.35});
+        btn.eventMode = 'static';
+        btn.cursor = 'pointer';
+        btn.x = GAME_WIDTH - 48;
+        btn.y = 10;
+        btn.on('pointerdown', () => this.togglePause());
 
-        for (let i = 0; i < 40; i++) {
-            const x = Math.random() * GAME_WIDTH;
-            const y = Math.random() * GAME_HEIGHT;
-            const r = 6 + Math.random() * 18;
-            g.circle(x, y, r);
-            g.fill({ color: 0x000000, alpha: 0.08 + Math.random() * 0.06 });
+        const icon = new Text({
+            text: '❚❚',
+            style: { fill: '#f2ead8', fontSize: 16, fontFamily: 'sans-serif'}
+        });
+        icon.anchor.set(0.5);
+        icon.x = 18;
+        icon.y = 18;
+        btn.addChild(icon);
+
+        this.layers.ui.addChild(btn);
+    }
+
+    private drawBackground() {
+        const tileHeight = 420;
+        const tile = new Graphics();
+
+        tile.rect(0, 0, GAME_WIDTH, tileHeight);
+        tile.fill({ color: BG_COLOR });
+
+        const blobColors = [0x453552, 0x2e2436, 0x4d3d47, 0x3a2d3a];
+        for (let i = 0; i < 14; i++) {
+            this.drawRockBlob(
+                tile,
+                Math.random() * GAME_WIDTH,
+                Math.random() * tileHeight,
+                30 + Math.random() * 55,
+                blobColors[Math.floor(Math.random() * blobColors.length)],
+                0.45 + Math.random() * 0.2
+            );
         }
 
-        this.layers.bg.addChild(g);
+        for (let i = 0; i < 10; i++){
+            let x = Math.random() * GAME_WIDTH;
+            let y = Math.random() * tileHeight;
+            tile.moveTo(x, y);
+
+            for (let seg = 0; seg < 3; seg++){
+                x += (Math.random() - 0.5) * 40;
+                y += 15 + Math.random() * 25;
+                tile.lineTo(x, y);
+            }
+
+            tile.stroke({ width: 1.5, color: '#1c1420', alpha: 0.35});
+        }
+
+        for (let i = 0; i < 120; i++) {
+            const x = Math.random() * GAME_WIDTH;
+            const y = Math.random() * tileHeight;
+            const r = 1 + Math.random() * 2.5;
+            const light = Math.random() < 0.5;
+            tile.circle(x, y, r);
+            tile.fill({ color:  light ? 0x6b5a68 : 0x1c1420, alpha: 0.2 + Math.random() * 0.25});
+        }
+
+        const texture = this.app.renderer.generateTexture(tile);
+        tile.destroy();
+
+        this.bgSprite = new TilingSprite({
+            texture,
+            width: GAME_WIDTH,
+            height: GAME_HEIGHT
+        });
+        this.layers.bg.addChild(this.bgSprite);
+    }
+
+    private drawRockBlob(g: Graphics, cx: number, cy: number, baseR: number, color: number, alpha: number) {
+        const points: number[] = [];
+        const segments = 8;
+
+        for(let i = 0; i < segments; i++){
+            const angle = (i / segments) * Math.PI * 2;
+            const r = baseR * (0.7 + Math.random() * 0.6);
+            points.push(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r);
+        }
+
+        g.poly(points);
+        g.fill({ color, alpha });
     }
 
     start() {
@@ -112,7 +188,7 @@ export class Game {
         this.cameraY = 0;
         this.layers.wall.y = 0;
         this.layers.player.y = 0;
-        this.layers.bg.y = 0;
+        this.bgSprite.tilePosition.set(0, 0);
 
         const startHold = this.wall.reset(0);
         this.player = new Player(startHold);
@@ -142,7 +218,7 @@ export class Game {
             style: {
                 fill: '#f2ead8',
                 fontSize: 42,
-                fontFamily: 'sans-seril',
+                fontFamily: 'sans-serif',
                 fontWeight: 'bold'            
             }
         });
@@ -156,7 +232,7 @@ export class Game {
             style: {
                 fill: '#f2ead8',
                 fontSize: 22,
-                fontFamily: 'sans-seril'
+                fontFamily: 'sans-serif'
             }
         });
         continueButton.anchor.set(0.5);
@@ -248,6 +324,6 @@ export class Game {
 
         this.layers.wall.y = this.cameraY;
         this.layers.player.y = this.cameraY;
-        this.layers.bg.y = this.cameraY * CAMERA.PARALLAX_BG;
+        this.bgSprite.tilePosition.y = this.cameraY * CAMERA.PARALLAX_BG;
     }
 }

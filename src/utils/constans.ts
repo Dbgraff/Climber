@@ -20,7 +20,8 @@ export const WALL = {
     MARGIN_X: 45,
     REACH_X: 145,
     ROWS_AHEAD: 8,
-    CULL_BELOW: 250
+    CULL_BELOW: 250,
+    HOLDS_PER_ROW_MAX: 3
 };
 
 export const HOLD = {

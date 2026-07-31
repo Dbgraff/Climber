@@ -1,5 +1,5 @@
 import { Hold } from "../entities/hold";
-import { WALL, GAME_WIDTH } from "../utils/constans"; 
+import { WALL, GAME_WIDTH, HOLD } from "../utils/constans"; 
 import { Game } from "../core/game";
 
 function clamp(v: number, min: number, max: number): number {
@@ -11,19 +11,17 @@ export class WallGenerator {
     private holds: Hold[] = [];
     private highestWorldY = 0; 
 
-    private lastHold: Hold | null = null;
+    private frontier: Hold[] = [];
  
     constructor(game: Game) {
         this.game = game;
     }
  
     reset(startWorldY: number): Hold {
-        
         for (const hold of this.holds) hold.destroy();
 
         this.holds = [];
         this.highestWorldY = startWorldY;
-        this.lastHold = null;
 
         const startHold = new Hold(
             GAME_WIDTH / 2, 
@@ -32,7 +30,7 @@ export class WallGenerator {
         );
 
         this.addHold(startHold);
-        this.lastHold = startHold;
+        this.frontier = [startHold];
  
         for (let i = 0; i < WALL.ROWS_AHEAD; i++) {
             this.generateNextRow();
@@ -60,56 +58,47 @@ export class WallGenerator {
 
         this.holds.splice(index, 1);
     }
- 
-    private generateNextRow() {
-        if(!this.lastHold) return;
 
-        const previous = this.lastHold;
-        const minVerticalDistance = 55;
-        const maxVerticalDistance = 105;
+    private placeNear(parent: Hold, verticalDistance: number): Hold {
+        const newY = parent.worldY - verticalDistance;
 
-        const verticalDistance = minVerticalDistance + Math.random() * (maxVerticalDistance - minVerticalDistance);
-
-        const newY = previous.worldY - verticalDistance;
+        const safeReach = HOLD.CLICK_REACH * 0.85;
+        const maxHorizontal = Math.sqrt(Math.max(0, safeReach ** 2 - verticalDistance ** 2));
         
-        const maxHorizontalDistance = WALL.REACH_X * 0.9;
-        const minX = Math.max(WALL.MARGIN_X, previous.worldX - maxHorizontalDistance);
-        const maxX = Math.min(GAME_WIDTH - WALL.MARGIN_X, previous.worldX + maxHorizontalDistance);
-
-        const newX = minX + Math.random() * (maxX - minX);
-
-        const newHold = new Hold(
-            clamp(
-                newX,
-                WALL.MARGIN_X,
-                GAME_WIDTH - WALL.MARGIN_X
-            ),
-            newY
-        );
-
-        this.addHold(newHold);
-
-        this.lastHold = newHold;
-        this.highestWorldY = Math.min(this.highestWorldY, newY);
-
-        if(Math.random() < 0.45) {
-            this.generateOptionalHold(newHold);
-        }
-    }
-
-    private generateOptionalHold(baseHold: Hold) {
-        const sideDistance = 45 + Math.random() * 70;
-        const direction = Math.random() < 0.5 ? -1 : 1;
-
-        const x = clamp(
-            baseHold.worldX + sideDistance * direction,
+        const newX = clamp(
+            parent.worldX + (Math.random() * 2 - 1) * maxHorizontal,
             WALL.MARGIN_X,
             GAME_WIDTH - WALL.MARGIN_X
         );
 
-        const y = baseHold.worldY + (Math.random() - 0.5) * 35;
+        const hold = new Hold(newX, newY);
+        this.addHold(hold);
+        return hold;
+    }
+ 
+    private generateNextRow() {
+        if(this.frontier.length === 0) return;
 
-        this.addHold(new Hold(x,y));
+        const minVerticalDistance = 55;
+        const maxVerticalDistance = 105;
+
+        const nextFrontier: Hold[] = [];
+
+        for (const parent of this.frontier) {
+            if (nextFrontier.length >= WALL.HOLDS_PER_ROW_MAX) break;
+
+            const verticalDistance = minVerticalDistance + Math.random() * (maxVerticalDistance - minVerticalDistance);
+            nextFrontier.push(this.placeNear(parent, verticalDistance));
+        }
+
+        if(nextFrontier.length < WALL.HOLDS_PER_ROW_MAX && Math.random() < 0.45) {
+            const base = nextFrontier[Math.floor(Math.random() * nextFrontier.length)];
+            const verticalDistance = 10 + Math.random() * 25;
+            nextFrontier.push(this.placeNear(base, verticalDistance));
+        }
+
+        this.frontier = nextFrontier;
+        this.highestWorldY = Math.min(this.highestWorldY, ...nextFrontier.map(h => h.worldY));
     }
  
     update(dt: number, playerWorldY: number, playerCurrentHoldId: number): Hold | null {
@@ -125,7 +114,6 @@ export class WallGenerator {
             if (hold.id === playerCurrentHoldId) {
                 if (hold.update(dt) === 'broke') {
                     brokenHold = hold;
-                    break;
                 }
             }
  
@@ -146,6 +134,6 @@ export class WallGenerator {
     destroy() {
         for (const hold of this.holds) hold.destroy();
         this.holds = [];
-        this.lastHold = null;
+        this.frontier = [];
     }
 }
